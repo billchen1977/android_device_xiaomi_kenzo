@@ -357,9 +357,13 @@ PRODUCT_PACKAGES += \
     Eleven \
     Browser
 
+# Telephony packages
+PRODUCT_PACKAGES += \
+    ims-ext-common \
+    telephony-ext
+
 # setup dalvik vm configs.
 $(call inherit-product, frameworks/native/build/phone-xhdpi-2048-dalvik-heap.mk)
-
 
 # Board platforms lists to be used for
 # TARGET_BOARD_PLATFORM specific featurization

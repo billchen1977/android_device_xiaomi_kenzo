@@ -65,4 +65,6 @@
         <item>"1"</item>
         <item>"0"</item>
     </string-array>
+    <!-- Configuration setting for world mode Format is <true;GID if any to be checked>-->
+    <string translatable="false" name="config_world_mode">true</string>
 </resources>

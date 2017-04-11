@@ -77,6 +77,7 @@ dev.pm.dyn_samplingrate=1
 persist.demo.hdmirotationlock=false
 debug.enable.sglscale=1
 persist.hwc.downscale_threshold=1.15
+ro.sf.lcd_density=430
 
 # OpenGLES version
 #196608 is decimal for 0x30000 to report major/minor versions as 3/0

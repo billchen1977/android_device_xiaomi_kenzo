@@ -1668,3 +1668,9 @@ if [ -f /sys/devices/soc0/select_image ]; then
     echo $image_variant > /sys/devices/soc0/image_variant
     echo $oem_version > /sys/devices/soc0/image_crm_version
 fi
+
+# thermal engine
+enable=`getprop persist.thermal_engine.enable`
+if [ "$enable" == "true" ]; then
+    start thermal-engine
+fi

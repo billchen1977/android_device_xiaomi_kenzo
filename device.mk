@@ -321,7 +321,7 @@ PRODUCT_PACKAGES += \
     thermal.kenzo
 
 PRODUCT_COPY_FILES += \
-    device/xiaomi/kenzo/configs/thermal-engine-8956.conf:system/etc/thermal-engine-8956.conf
+    device/xiaomi/kenzo/configs/thermal-engine.conf:system/etc/thermal-engine.conf
 
 # for off charging mode
 PRODUCT_PACKAGES += \

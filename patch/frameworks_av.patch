@@ -74,6 +74,32 @@ index 15ff569..0e33a85 100644
              ALOGV("Slot %d returned, matches handle = %p", id,
                      mSlots[id].mGraphicBuffer->handle);
  
+diff --git a/services/audioflinger/AudioFlinger.cpp b/services/audioflinger/AudioFlinger.cpp
+index fec3a57..ac047ab 100644
+--- a/services/audioflinger/AudioFlinger.cpp
++++ b/services/audioflinger/AudioFlinger.cpp
+@@ -1509,7 +1509,7 @@ sp<IAudioRecord> AudioFlinger::openRecord(
+     }
+ 
+     // check calling permissions
+-    if (!recordingAllowed(opPackageName, tid, clientUid)) {
++    if (!isTrustedCallingUid(callingUid) && !recordingAllowed(opPackageName, tid, clientUid)) {
+         ALOGE("openRecord() permission denied: recording not allowed");
+         lStatus = PERMISSION_DENIED;
+         goto Exit;
+diff --git a/services/audiopolicy/service/AudioPolicyInterfaceImpl.cpp b/services/audiopolicy/service/AudioPolicyInterfaceImpl.cpp
+index a75e3dd..67bacd1 100644
+--- a/services/audiopolicy/service/AudioPolicyInterfaceImpl.cpp
++++ b/services/audiopolicy/service/AudioPolicyInterfaceImpl.cpp
+@@ -318,7 +318,7 @@ status_t AudioPolicyService::getInputForAttr(const audio_attributes_t *attr,
+             case AudioPolicyInterface::API_INPUT_TELEPHONY_RX:
+                 // FIXME: use the same permission as for remote submix for now.
+             case AudioPolicyInterface::API_INPUT_MIX_CAPTURE:
+-                if (!captureAudioOutputAllowed(pid, uid)) {
++                if (!isTrustedCallingUid(callingUid) && !captureAudioOutputAllowed(pid, uid)) {
+                     ALOGE("getInputForAttr() permission denied: capture not allowed");
+                     status = PERMISSION_DENIED;
+                 }
 diff --git a/services/camera/libcameraservice/api1/CameraClient.cpp b/services/camera/libcameraservice/api1/CameraClient.cpp
 index 266fb03..0172422 100644
 --- a/services/camera/libcameraservice/api1/CameraClient.cpp

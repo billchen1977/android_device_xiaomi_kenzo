@@ -36,10 +36,20 @@ index 893da89..29a8f7b 100644
      // Check the actual video frame rate against the target/requested
      // video frame rate.
 diff --git a/media/libstagefright/CameraSourceTimeLapse.cpp b/media/libstagefright/CameraSourceTimeLapse.cpp
-index 390c556..8ad6018 100644
+index 390c556..3780d92 100644
 --- a/media/libstagefright/CameraSourceTimeLapse.cpp
 +++ b/media/libstagefright/CameraSourceTimeLapse.cpp
-@@ -296,6 +296,12 @@ bool CameraSourceTimeLapse::skipFrameAndModifyTimeStamp(int64_t *timestampUs) {
+@@ -281,7 +281,8 @@ bool CameraSourceTimeLapse::skipFrameAndModifyTimeStamp(int64_t *timestampUs) {
+     // The first 2 output frames from the encoder are: decoder specific info and
+     // the compressed video frame data for the first input video frame.
+     if (mNumFramesEncoded >= 1 && *timestampUs <
+-        (mLastTimeLapseFrameRealTimestampUs + mTimeBetweenFrameCaptureUs)) {
++        (mLastTimeLapseFrameRealTimestampUs + mTimeBetweenFrameCaptureUs) &&
++        (mTimeBetweenFrameCaptureUs > mTimeBetweenTimeLapseVideoFramesUs + 1)) {
+         // Skip all frames from last encoded frame until
+         // sufficient time (mTimeBetweenFrameCaptureUs) has passed.
+         // Tell the camera to release its recording frame and return.
+@@ -296,6 +297,12 @@ bool CameraSourceTimeLapse::skipFrameAndModifyTimeStamp(int64_t *timestampUs) {
  
          mLastTimeLapseFrameRealTimestampUs = *timestampUs;
          *timestampUs = mLastFrameTimestampUs + mTimeBetweenTimeLapseVideoFramesUs;

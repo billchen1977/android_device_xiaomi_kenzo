@@ -101,6 +101,14 @@ ro.hwui.text_large_cache_height=1024
 # CABL
 ro.qualcomm.cabl=2
 
+# SVI
+ro.qualcomm.svi=1
+
+# AD
+ro.qcom.ad=1
+ro.qcom.ad.calib.data=/system/etc/calib.cfg
+ro.qcom.ad.sensortype=2
+
 # Bluetooth
 bluetooth.hfp.client=1
 qcom.bluetooth.soc=smd

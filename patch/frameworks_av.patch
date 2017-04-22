@@ -1,3 +1,18 @@
+diff --git a/include/media/stagefright/MediaBuffer.h b/include/media/stagefright/MediaBuffer.h
+index a61ddaa..18f2155 100644
+--- a/include/media/stagefright/MediaBuffer.h
++++ b/include/media/stagefright/MediaBuffer.h
+@@ -103,9 +103,7 @@ public:
+     MediaBuffer *clone();
+ 
+     // sum of localRefcount() and remoteRefcount()
+-    int refcount() const {
+-        return localRefcount() + remoteRefcount();
+-    }
++    int refcount() const;
+ 
+     int localRefcount() const {
+         return mRefCount;
 diff --git a/media/libstagefright/CameraSource.cpp b/media/libstagefright/CameraSource.cpp
 index 893da89..29a8f7b 100644
 --- a/media/libstagefright/CameraSource.cpp
@@ -83,6 +98,21 @@ index 15ff569..0e33a85 100644
 +        if (bufferHandle == (buffer_handle_t)mSlots[id].mGraphicBuffer->getNativeBuffer()) {
              ALOGV("Slot %d returned, matches handle = %p", id,
                      mSlots[id].mGraphicBuffer->handle);
+ 
+diff --git a/media/libstagefright/foundation/MediaBuffer.cpp b/media/libstagefright/foundation/MediaBuffer.cpp
+index 16000ef..6f32c2b 100644
+--- a/media/libstagefright/foundation/MediaBuffer.cpp
++++ b/media/libstagefright/foundation/MediaBuffer.cpp
+@@ -198,6 +198,10 @@ void MediaBuffer::setObserver(MediaBufferObserver *observer) {
+     mObserver = observer;
+ }
+ 
++int MediaBuffer::refcount() const {
++    return localRefcount() + remoteRefcount();
++}
++
+ MediaBuffer *MediaBuffer::clone() {
+     CHECK(mGraphicBuffer == NULL);
  
 diff --git a/services/audioflinger/AudioFlinger.cpp b/services/audioflinger/AudioFlinger.cpp
 index fec3a57..ac047ab 100644

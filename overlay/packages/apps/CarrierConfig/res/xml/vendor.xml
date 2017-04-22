@@ -26,6 +26,11 @@
         <boolean name="world_phone_bool" value="true" />
     </carrier_config>
 
+    <carrier_config mcc="310" mnc="00">
+        <boolean name="support_pause_ims_video_calls_bool" value="true" />
+        <boolean name="carrier_allow_turnoff_ims_bool" value="false" />
+    </carrier_config>
+
     <carrier_config mcc="460" mnc="00">
         <boolean name="carrier_volte_available_bool" value="true" /> 
         <boolean name="carrier_vt_available_bool" value="true" /> 
@@ -36,9 +41,27 @@
         <boolean name="carrier_vt_available_bool" value="true" /> 
     </carrier_config>
 
+    <carrier_config mcc="460" mnc="03">
+        <int name="volte_replacement_rat_int" value="6" />
+    </carrier_config>
+
     <carrier_config mcc="460" mnc="07">
         <boolean name="carrier_volte_available_bool" value="true" /> 
         <boolean name="carrier_vt_available_bool" value="true" /> 
+    </carrier_config>
+
+    <carrier_config mcc="460" mnc="08">
+        <boolean name="carrier_volte_available_bool" value="true" />
+        <boolean name="carrier_vt_available_bool" value="true" />
+    </carrier_config>
+
+    <carrier_config mcc="460" mnc="11">
+        <int name="volte_replacement_rat_int" value="6" />
+    </carrier_config>
+
+    <carrier_config mcc="460" mnc="12">
+        <boolean name="show_apn_setting_cdma_bool" value="true" />
+        <int name="volte_replacement_rat_int" value="6" />
     </carrier_config>
 
     <carrier_config mcc="510" mnc="09">

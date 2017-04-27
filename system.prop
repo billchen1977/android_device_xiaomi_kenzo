@@ -77,6 +77,7 @@ dev.pm.dyn_samplingrate=1
 persist.demo.hdmirotationlock=false
 debug.enable.sglscale=1
 persist.hwc.downscale_threshold=1.15
+persist.metadata_dynfps.disable=true
 ro.sf.lcd_density=430
 
 # OpenGLES version

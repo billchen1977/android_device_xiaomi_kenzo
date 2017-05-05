@@ -43,6 +43,14 @@ LOCAL_SRC_FILES    := WCNSS_qcom_wlan_nv.bin
 include $(BUILD_PREBUILT)
 
 include $(CLEAR_VARS)
+LOCAL_MODULE       := WCNSS_qcom_wlan_nv_b3gbl.bin
+LOCAL_MODULE_TAGS  := optional
+LOCAL_MODULE_CLASS := ETC
+LOCAL_MODULE_PATH  := $(TARGET_OUT_ETC)/firmware/wlan/prima
+LOCAL_SRC_FILES    := WCNSS_qcom_wlan_nv_b3gbl.bin
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
 LOCAL_MODULE       := WCNSS_wlan_dictionary.dat
 LOCAL_MODULE_TAGS  := optional
 LOCAL_MODULE_CLASS := ETC

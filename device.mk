@@ -267,7 +267,6 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     WCNSS_cfg.dat \
     WCNSS_qcom_wlan_nv.bin \
-    WCNSS_qcom_wlan_nv_b3gbl.bin \
     WCNSS_wlan_dictionary.dat
 
 PRODUCT_COPY_FILES += \

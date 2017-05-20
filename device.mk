@@ -31,14 +31,12 @@ PRODUCT_PACKAGES += \
     fstab.qcom \
     vold.fstab \
     init.class_main.sh \
-    init.qcom.class_core.sh \
     init.qcom.early_boot.sh \
     init.qcom.post_boot.sh \
     init.qcom.qseecomd.sh \
     init.qcom.zram.sh \
     init.qcom.rc \
     init.qcom.sh \
-    init.qcom.syspart_fixup.sh \
     init.qcom.usb.rc \
     init.qcom.usb.sh \
     init.qcom.bt.sh \

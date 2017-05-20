@@ -375,12 +375,6 @@ on property:bluetooth.startbtsnoop=true
 on property:bluetooth.startbtsnoop=false
     stop btsnoop
 
-service qcom-c_core-sh /system/bin/sh /init.qcom.class_core.sh
-    class core
-    user root
-    oneshot
-    seclabel u:r:qti_init_shell:s0
-
 service qcom-c_main-sh /system/bin/sh /init.class_main.sh
     class main
     user root
@@ -506,7 +500,7 @@ service bridgemgrd /system/bin/bridgemgrd
 
 service port-bridge /system/bin/port-bridge /dev/mhi_pipe_32 /dev/ttyGS0
     class main
-    user radio system
+    user radio
     group radio system inet
     disabled
     oneshot

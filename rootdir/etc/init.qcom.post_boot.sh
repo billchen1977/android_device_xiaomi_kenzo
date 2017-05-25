@@ -235,3 +235,10 @@ enable=`getprop persist.thermal_engine.enable`
 if [ "$enable" == "true" ]; then
     start thermal-engine
 fi
+
+# voltage control
+enable=`getprop persist.voltage_control.enable`
+if [ "$enable" == "true" ]; then
+    echo "680 730 780 865 920 955 975 980 990 720 765 810 835 900 950 955" > /sys/devices/system/cpu/cpu0/cpufreq/UV_mV_table
+    echo "665 670 675 785 800 900 920 970 990" > /sys/devices/system/cpu/cpu0/cpufreq/GPU_mV_table
+fi

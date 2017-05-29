@@ -1,3 +1,367 @@
+diff --git a/core/java/android/util/BoostFramework.java b/core/java/android/util/BoostFramework.java
+new file mode 100644
+index 0000000..b9a63ec
+--- /dev/null
++++ b/core/java/android/util/BoostFramework.java
+@@ -0,0 +1,119 @@
++/*
++ * Copyright (c) 2015, The Linux Foundation. All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *    * Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
++ *    * Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *    * Neither the name of The Linux Foundation nor the names of its
++ *      contributors may be used to endorse or promote products derived
++ *      from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
++ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
++ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
++ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
++ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++package android.util;
++
++import android.util.Log;
++import dalvik.system.PathClassLoader;
++import java.lang.reflect.Constructor;
++import java.lang.reflect.Method;
++import java.lang.System;
++import android.view.MotionEvent;
++import android.util.DisplayMetrics;
++
++/** @hide */
++public class BoostFramework {
++
++    private static final String TAG = "BoostFramework";
++    private static final String PERFORMANCE_JAR = "/system/framework/QPerformance.jar";
++    private static final String PERFORMANCE_CLASS = "com.qualcomm.qti.Performance";
++
++/** @hide */
++    private static boolean mIsLoaded = false;
++    private static Method mAcquireFunc = null;
++    private static Method mReleaseFunc = null;
++    private static Constructor<Class> mConstructor = null;
++
++/** @hide */
++    private Object mPerf = null;
++
++/** @hide */
++    public BoostFramework() {
++
++        if (mIsLoaded == false) {
++            try {
++                Class perfClass;
++                PathClassLoader perfClassLoader;
++
++                perfClassLoader = new PathClassLoader(PERFORMANCE_JAR,
++                                  ClassLoader.getSystemClassLoader());
++                perfClass = perfClassLoader.loadClass(PERFORMANCE_CLASS);
++                mConstructor = perfClass.getConstructor();
++
++                Class[] argClasses = new Class[] {int.class, int[].class};
++                mAcquireFunc =  perfClass.getDeclaredMethod("perfLockAcquire", argClasses);
++                Log.v(TAG,"mAcquireFunc method = " + mAcquireFunc);
++
++                argClasses = new Class[] {};
++                mReleaseFunc =  perfClass.getDeclaredMethod("perfLockRelease", argClasses);
++                Log.v(TAG,"mReleaseFunc method = " + mReleaseFunc);
++
++                mIsLoaded = true;
++            }
++            catch(Exception e) {
++                Log.e(TAG,"BoostFramework() : Exception_1 = " + e);
++            }
++        }
++
++        try {
++            if (mConstructor != null) {
++                mPerf = mConstructor.newInstance();
++            }
++        }
++        catch(Exception e) {
++            Log.e(TAG,"BoostFramework() : Exception_2 = " + e);
++        }
++
++        Log.v(TAG,"BoostFramework() : mPerf = " + mPerf);
++    }
++
++/** @hide */
++    public int perfLockAcquire(int duration, int... list) {
++        int ret = -1;
++        try {
++            Object retVal = mAcquireFunc.invoke(mPerf, duration, list);
++            ret = (int)retVal;
++        } catch(Exception e) {
++            Log.e(TAG,"Exception " + e);
++        }
++        return ret;
++    }
++
++/** @hide */
++    public int perfLockRelease() {
++        int ret = -1;
++        try {
++            Object retVal = mReleaseFunc.invoke(mPerf);
++            ret = (int)retVal;
++        } catch(Exception e) {
++            Log.e(TAG,"Exception " + e);
++        }
++        return ret;
++    }
++};
+diff --git a/core/java/android/widget/OverScroller.java b/core/java/android/widget/OverScroller.java
+index 50569d7..ba5d39e 100644
+--- a/core/java/android/widget/OverScroller.java
++++ b/core/java/android/widget/OverScroller.java
+@@ -22,6 +22,7 @@ import android.util.Log;
+ import android.view.ViewConfiguration;
+ import android.view.animation.AnimationUtils;
+ import android.view.animation.Interpolator;
++import android.util.BoostFramework;
+ 
+ /**
+  * This class encapsulates scrolling with the ability to overshoot the bounds
+@@ -599,6 +600,18 @@ public class OverScroller {
+         private static final int CUBIC = 1;
+         private static final int BALLISTIC = 2;
+ 
++        /*
++         * Perf boost related variables
++         * Enabled/Disabled using config_enableCpuBoostForOverScrollerFling
++         * true value turns it on, by default will be turned off
++         */
++        private BoostFramework mPerf = null;
++        private boolean mIsPerfLockAcquired = false;
++        private boolean mIsPerfBoostEnabled = false;
++        private int fBoostTimeOut = 0;
++        private int flingBoostTimeOut = 0;
++        private int fBoostParamVal[];
++
+         static {
+             float x_min = 0.0f;
+             float y_min = 0.0f;
+@@ -643,6 +656,19 @@ public class OverScroller {
+                     * 39.37f // inch/meter
+                     * ppi
+                     * 0.84f; // look and feel tuning
++
++            mIsPerfBoostEnabled = context.getResources().getBoolean(
++                   com.android.internal.R.bool.config_enableCpuBoostForOverScrollerFling);
++            if (mIsPerfBoostEnabled) {
++            fBoostTimeOut = context.getResources().getInteger(
++                   com.android.internal.R.integer.flingboost_timeout_param);
++            fBoostParamVal = context.getResources().getIntArray(
++                        com.android.internal.R.array.flingboost_param_value);
++            }
++
++            if (mPerf == null && mIsPerfBoostEnabled) {
++                mPerf = new BoostFramework();
++            }
+         }
+ 
+         void updateScroll(float q) {
+@@ -690,6 +716,11 @@ public class OverScroller {
+         }
+ 
+         void finish() {
++            if (mIsPerfLockAcquired && mPerf != null) {
++                mPerf.perfLockRelease();
++                mIsPerfLockAcquired = false;
++            }
++
+             mCurrentPosition = mFinal;
+             // Not reset since WebView relies on this value for fast fling.
+             // TODO: restore when WebView uses the fast fling implemented in this class.
+@@ -749,6 +780,11 @@ public class OverScroller {
+             mStartTime = AnimationUtils.currentAnimationTimeMillis();
+             mCurrentPosition = mStart = start;
+ 
++            if (mIsPerfLockAcquired && mPerf != null) {
++                mPerf.perfLockRelease();
++                mIsPerfLockAcquired = false;
++            }
++
+             if (start > max || start < min) {
+                 startAfterEdge(start, min, max, velocity);
+                 return;
+@@ -913,6 +949,18 @@ public class OverScroller {
+                 return false;
+             }
+ 
++            if (mPerf != null && !mIsPerfLockAcquired) {
++                mIsPerfLockAcquired = true;
++                if (0 == fBoostTimeOut) {
++                    //config value is not defined
++                    flingBoostTimeOut = mDuration;
++                } else {
++                    //config value is present
++                    flingBoostTimeOut = fBoostTimeOut;
++                }
++                mPerf.perfLockAcquire(flingBoostTimeOut, fBoostParamVal);
++            }
++
+             double distance = 0.0;
+             switch (mState) {
+                 case SPLINE: {
+diff --git a/core/java/android/widget/Scroller.java b/core/java/android/widget/Scroller.java
+index 357c9c3..d0ba9e6 100644
+--- a/core/java/android/widget/Scroller.java
++++ b/core/java/android/widget/Scroller.java
+@@ -22,6 +22,7 @@ import android.os.Build;
+ import android.view.ViewConfiguration;
+ import android.view.animation.AnimationUtils;
+ import android.view.animation.Interpolator;
++import android.util.BoostFramework;
+ 
+ 
+ /**
+@@ -108,6 +109,17 @@ public class Scroller  {
+     private float mDeceleration;
+     private final float mPpi;
+ 
++    /*
++    * Perf boost related variables
++    * Enabled/Disabled using config_enableCpuBoostForScroller
++    * true value turns it on, by default will be turned off
++    */
++    private BoostFramework mPerf = null;
++    boolean bIsPerfBoostEnabled = false;
++    private int sBoostTimeOut = 0;
++    private int scrollBoostTimeOut = 0;
++    private int sBoostParamVal[];
++
+     // A context-specific coefficient adjusted to physical values.
+     private float mPhysicalCoeff;
+ 
+@@ -167,6 +179,7 @@ public class Scroller  {
+      * not to support progressive "flywheel" behavior in flinging.
+      */
+     public Scroller(Context context, Interpolator interpolator, boolean flywheel) {
++        boolean bIsPerfBoostEnabled = false;
+         mFinished = true;
+         if (interpolator == null) {
+             mInterpolator = new ViscousFluidInterpolator();
+@@ -178,6 +191,18 @@ public class Scroller  {
+         mFlywheel = flywheel;
+ 
+         mPhysicalCoeff = computeDeceleration(0.84f); // look and feel tuning
++        bIsPerfBoostEnabled = context.getResources().getBoolean(
++             com.android.internal.R.bool.config_enableCpuBoostForScroller);
++        if (bIsPerfBoostEnabled) {
++        sBoostTimeOut = context.getResources().getInteger(
++               com.android.internal.R.integer.scrollboost_timeout_param);
++        sBoostParamVal = context.getResources().getIntArray(
++               com.android.internal.R.array.scrollboost_param_value);
++        }
++        if (mPerf == null && bIsPerfBoostEnabled) {
++            mPerf = new BoostFramework();
++        }
++
+     }
+ 
+     /**
+@@ -395,6 +420,17 @@ public class Scroller  {
+         mDeltaX = dx;
+         mDeltaY = dy;
+         mDurationReciprocal = 1.0f / (float) mDuration;
++
++        if ((mPerf != null) && (duration != 0)) {
++            if (0 == sBoostTimeOut) {
++                //config value is not defined
++                scrollBoostTimeOut = mDuration;
++            } else {
++                //config value is present
++                scrollBoostTimeOut = sBoostTimeOut;
++            }
++            mPerf.perfLockAcquire(scrollBoostTimeOut, sBoostParamVal);
++        }
+     }
+ 
+     /**
+diff --git a/core/res/res/values/config.xml b/core/res/res/values/config.xml
+index 7baed78..ede9bd1 100644
+--- a/core/res/res/values/config.xml
++++ b/core/res/res/values/config.xml
+@@ -2620,6 +2620,31 @@
+          remote provider -->
+     <string name="config_tvRemoteServicePackage" translatable="false"></string>
+ 
++    <!-- Whether cpu boost is enabled for AppLaunch -->
++    <bool name="config_enableCpuBoostForAppLaunch">false</bool>
++    <integer name="launchboost_timeout_param">0</integer>
++    <integer-array name="launchboost_param_value"/>
++
++    <!-- Whether disablepacking is enabled or not -->
++    <bool name="config_disablePacking">false</bool>
++    <integer name="disablepacking_timeout_param">0</integer>
++    <integer-array name="launchboost_packing_param_value"/>
++
++    <!-- Whether cpu boost is enabled for animation. -->
++    <bool name="config_enablePerfBoostForAnimation">false</bool>
++    <integer name="animationboost_timeout_param">0</integer>
++    <integer-array name="animationboost_param_value"/>
++
++    <!-- Whether cpu boost is enabled for overscroller fling. -->
++    <bool name="config_enableCpuBoostForOverScrollerFling">false</bool>
++    <integer name="flingboost_timeout_param">0</integer>
++    <integer-array name="flingboost_param_value"/>
++
++    <!-- Whether cpu boost is enabled for horizontal scroll. -->
++    <bool name="config_enableCpuBoostForScroller">false</bool>
++    <integer name="scrollboost_timeout_param">0</integer>
++    <integer-array name="scrollboost_param_value"/>
++
+     <!-- True if the device supports persisting security logs across reboots.
+          This requires the device's kernel to have pstore and pmsg enabled,
+          and DRAM to be powered and refreshed through all stages of reboot. -->
+diff --git a/core/res/res/values/symbols.xml b/core/res/res/values/symbols.xml
+index 08ac043..a755d36 100644
+--- a/core/res/res/values/symbols.xml
++++ b/core/res/res/values/symbols.xml
+@@ -2749,4 +2749,29 @@
+   <java-symbol type="bool" name="use_lock_pattern_drawable" />
+   <java-symbol type="drawable" name="lockscreen_notselected" />
+   <java-symbol type="drawable" name="lockscreen_selected" />
++
++  <!-- cpu boost for AppLaunch -->
++  <java-symbol type="bool" name="config_enableCpuBoostForAppLaunch" />
++  <java-symbol type="integer" name="launchboost_timeout_param" />
++  <java-symbol type="array" name="launchboost_param_value" />
++
++  <!-- cpu boost for AppLaunch -->
++  <java-symbol type="bool" name="config_disablePacking" />
++  <java-symbol type="integer" name="disablepacking_timeout_param" />
++  <java-symbol type="array" name="launchboost_packing_param_value" />
++
++  <!-- cpu boost for Animationboost -->
++  <java-symbol type="bool" name="config_enablePerfBoostForAnimation" />
++  <java-symbol type="integer" name="animationboost_timeout_param" />
++  <java-symbol type="array" name="animationboost_param_value" />
++
++  <!-- cpu boost for overscroller fling -->
++  <java-symbol type="bool" name="config_enableCpuBoostForOverScrollerFling" />
++  <java-symbol type="integer" name="flingboost_timeout_param" />
++  <java-symbol type="array" name="flingboost_param_value" />
++
++  <!-- cpu boost for horizontal scroll -->
++  <java-symbol type="bool" name="config_enableCpuBoostForScroller" />
++  <java-symbol type="integer" name="scrollboost_timeout_param" />
++  <java-symbol type="array" name="scrollboost_param_value" />
+ </resources>
 diff --git a/packages/SystemUI/src/com/android/systemui/assist/AssistManager.java b/packages/SystemUI/src/com/android/systemui/assist/AssistManager.java
 index c965067..f96a8c4 100644
 --- a/packages/SystemUI/src/com/android/systemui/assist/AssistManager.java
@@ -11,6 +375,189 @@ index c965067..f96a8c4 100644
 +        }
          replaceDrawable(mView.getOrb().getLogo(), assistComponent, ASSIST_ICON_METADATA_NAME,
                  isService);
+     }
+diff --git a/services/core/java/com/android/server/am/ActivityStack.java b/services/core/java/com/android/server/am/ActivityStack.java
+index de858e39..4b759fa 100644
+--- a/services/core/java/com/android/server/am/ActivityStack.java
++++ b/services/core/java/com/android/server/am/ActivityStack.java
+@@ -117,6 +117,7 @@ import android.os.Trace;
+ import android.os.UserHandle;
+ import android.service.voice.IVoiceInteractionSession;
+ import android.util.ArraySet;
++import android.util.BoostFramework;
+ import android.util.EventLog;
+ import android.util.Log;
+ import android.util.Slog;
+@@ -237,6 +238,11 @@ final class ActivityStack {
+     final WindowManagerService mWindowManager;
+     private final RecentTasks mRecentTasks;
+ 
++    public BoostFramework mPerf = null;
++    public boolean mIsAnimationBoostEnabled = false;
++    public int aBoostTimeOut = 0;
++    public int aBoostParamVal[];
++
+     /**
+      * The back history of all previous (and possibly still
+      * running) activities.  It contains #TaskRecord objects.
+@@ -449,6 +455,15 @@ final class ActivityStack {
+         mRecentTasks = recentTasks;
+         mTaskPositioner = mStackId == FREEFORM_WORKSPACE_STACK_ID
+                 ? new LaunchingTaskPositioner() : null;
++
++        mIsAnimationBoostEnabled = mService.mContext.getResources().getBoolean(
++                   com.android.internal.R.bool.config_enablePerfBoostForAnimation);
++        if (mIsAnimationBoostEnabled) {
++           aBoostTimeOut = mService.mContext.getResources().getInteger(
++                   com.android.internal.R.integer.animationboost_timeout_param);
++           aBoostParamVal = mService.mContext.getResources().getIntArray(
++                   com.android.internal.R.array.animationboost_param_value);
++        }
+     }
+ 
+     void attachDisplay(ActivityStackSupervisor.ActivityDisplay activityDisplay, boolean onTop) {
+@@ -2358,6 +2373,9 @@ final class ActivityStack {
+         // that the previous one will be hidden soon.  This way it can know
+         // to ignore it when computing the desired screen orientation.
+         boolean anim = true;
++        if (mIsAnimationBoostEnabled == true && mPerf == null) {
++            mPerf = new BoostFramework();
++        }
+         if (prev != null) {
+             if (prev.finishing) {
+                 if (DEBUG_TRANSITION) Slog.v(TAG_TRANSITION,
+@@ -2369,6 +2387,9 @@ final class ActivityStack {
+                     mWindowManager.prepareAppTransition(prev.task == next.task
+                             ? TRANSIT_ACTIVITY_CLOSE
+                             : TRANSIT_TASK_CLOSE, false);
++                    if(prev.task != next.task && mPerf != null) {
++                       mPerf.perfLockAcquire(aBoostTimeOut, aBoostParamVal);
++                    }
+                 }
+                 mWindowManager.setAppVisibility(prev.appToken, false);
+             } else {
+@@ -2383,6 +2404,9 @@ final class ActivityStack {
+                             : next.mLaunchTaskBehind
+                                     ? TRANSIT_TASK_OPEN_BEHIND
+                                     : TRANSIT_TASK_OPEN, false);
++                    if(prev.task != next.task && mPerf != null) {
++                       mPerf.perfLockAcquire(aBoostTimeOut, aBoostParamVal);
++                    }
+                 }
+             }
+         } else {
+diff --git a/services/core/java/com/android/server/am/ActivityStackSupervisor.java b/services/core/java/com/android/server/am/ActivityStackSupervisor.java
+index c6ab918..888616d 100644
+--- a/services/core/java/com/android/server/am/ActivityStackSupervisor.java
++++ b/services/core/java/com/android/server/am/ActivityStackSupervisor.java
+@@ -84,6 +84,7 @@ import android.view.Display;
+ import android.view.DisplayInfo;
+ import android.view.InputEvent;
+ import android.view.Surface;
++import android.util.BoostFramework;
+ 
+ import com.android.internal.content.ReferrerIntent;
+ import com.android.internal.os.TransferPipe;
+@@ -205,6 +206,14 @@ public final class ActivityStackSupervisor implements DisplayListener {
+     static final int RESUME_TOP_ACTIVITY_MSG = FIRST_SUPERVISOR_STACK_MSG + 2;
+     static final int SLEEP_TIMEOUT_MSG = FIRST_SUPERVISOR_STACK_MSG + 3;
+     static final int LAUNCH_TIMEOUT_MSG = FIRST_SUPERVISOR_STACK_MSG + 4;
++    public BoostFramework mPerfBoost = null;
++    public BoostFramework mPerfPack = null;
++    public boolean mIsPerfBoostEnabled = false;
++    public boolean mIsperfDisablepackingEnable = false;
++    public int lBoostTimeOut = 0;
++    public int lDisPackTimeOut = 0;
++    public int lBoostCpuParamVal[];
++    public int lBoostPackParamVal[];
+     static final int HANDLE_DISPLAY_ADDED = FIRST_SUPERVISOR_STACK_MSG + 5;
+     static final int HANDLE_DISPLAY_CHANGED = FIRST_SUPERVISOR_STACK_MSG + 6;
+     static final int HANDLE_DISPLAY_REMOVED = FIRST_SUPERVISOR_STACK_MSG + 7;
+@@ -487,6 +496,25 @@ public final class ActivityStackSupervisor implements DisplayListener {
+         mHandler = new ActivityStackSupervisorHandler(mService.mHandler.getLooper());
+         mActivityMetricsLogger = new ActivityMetricsLogger(this, mService.mContext);
+         mResizeDockedStackTimeout = new ResizeDockedStackTimeout(service, this, mHandler);
++        /* Is perf lock for cpu-boost enabled during App 1st launch */
++        mIsPerfBoostEnabled = mService.mContext.getResources().getBoolean(
++                   com.android.internal.R.bool.config_enableCpuBoostForAppLaunch);
++        mIsperfDisablepackingEnable = mService.mContext.getResources().getBoolean(
++                   com.android.internal.R.bool.config_disablePacking);
++
++        if(mIsPerfBoostEnabled) {
++           lBoostTimeOut = mService.mContext.getResources().getInteger(
++                   com.android.internal.R.integer.launchboost_timeout_param);
++           lBoostCpuParamVal = mService.mContext.getResources().getIntArray(
++                           com.android.internal.R.array.launchboost_param_value);
++        }
++
++        if(mIsperfDisablepackingEnable) {
++           lDisPackTimeOut = mService.mContext.getResources().getInteger(
++                   com.android.internal.R.integer.disablepacking_timeout_param);
++           lBoostPackParamVal = mService.mContext.getResources().getIntArray(
++                        com.android.internal.R.array.launchboost_packing_param_value);
++       }
+     }
+ 
+     void setRecentTasks(RecentTasks recentTasks) {
+@@ -1874,6 +1902,14 @@ public final class ActivityStackSupervisor implements DisplayListener {
+ 
+     void findTaskToMoveToFrontLocked(TaskRecord task, int flags, ActivityOptions options,
+             String reason, boolean forceNonResizeable) {
++
++        ActivityRecord top_activity;
++        top_activity = task.stack.topRunningActivityLocked();
++        /* App is launching from recent apps and it's a new process */
++        if(top_activity != null && top_activity.state == ActivityState.DESTROYED) {
++            acquireAppLaunchPerfLock();
++        }
++
+         if ((flags & ActivityManager.MOVE_TASK_NO_USER_ACTION) == 0) {
+             mUserLeaving = true;
+         }
+@@ -2688,6 +2724,23 @@ public final class ActivityStackSupervisor implements DisplayListener {
+         resumeFocusedStackTopActivityLocked();
+     }
+ 
++    void acquireAppLaunchPerfLock() {
++       /* Acquire perf lock during new app launch */
++       if (mIsperfDisablepackingEnable == true && mPerfPack == null) {
++           mPerfPack = new BoostFramework();
++       }
++       if (mPerfPack != null) {
++           mPerfPack.perfLockAcquire(lDisPackTimeOut, lBoostPackParamVal);
++       }
++
++       if (mIsPerfBoostEnabled == true && mPerfBoost == null) {
++           mPerfBoost = new BoostFramework();
++       }
++       if (mPerfBoost != null) {
++           mPerfBoost.perfLockAcquire(lBoostTimeOut, lBoostCpuParamVal);
++       }
++    }
++
+     ActivityRecord findTaskLocked(ActivityRecord r) {
+         mTmpFindTaskResult.r = null;
+         mTmpFindTaskResult.matchedByRootAffinity = false;
+@@ -2711,10 +2764,20 @@ public final class ActivityStackSupervisor implements DisplayListener {
+                 // there is a better match in another stack. We eventually return the match based
+                 // on root affinity if we don't find a better match.
+                 if (mTmpFindTaskResult.r != null && !mTmpFindTaskResult.matchedByRootAffinity) {
++                    if(mTmpFindTaskResult.r.state == ActivityState.DESTROYED ) {
++                        /*It's a new app launch */
++                        acquireAppLaunchPerfLock();
++                    }
+                     return mTmpFindTaskResult.r;
+                 }
+             }
+         }
++        /* Acquire perf lock during new app launch */
++        if (mTmpFindTaskResult.r == null)
++            acquireAppLaunchPerfLock();
++        else if (mTmpFindTaskResult.r.state == ActivityState.DESTROYED)
++            acquireAppLaunchPerfLock();
++
+         if (DEBUG_TASKS && mTmpFindTaskResult.r == null) Slog.d(TAG_TASKS, "No task found");
+         return mTmpFindTaskResult.r;
      }
 diff --git a/services/core/java/com/android/server/display/DisplayPowerController.java b/services/core/java/com/android/server/display/DisplayPowerController.java
 index f6240a7..94326b7 100644

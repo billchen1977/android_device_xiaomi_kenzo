@@ -1707,28 +1707,8 @@
         <ctl name="IIR0 INP0 MUX" value="DEC7" />
     </path>
 
-    <path name="wsa-speaker">
-        <ctl name="SLIM RX0 MUX" value="AIF_MIX1_PB" />
-        <ctl name="SLIM RX1 MUX" value="AIF_MIX1_PB" />
-        <ctl name="SLIM_0_RX Channels" value="Two" />
-        <ctl name="RX INT7_1 MIX1 INP0" value="RX0" />
-        <ctl name="RX INT8_1 MIX1 INP0" value="RX1" />
-        <ctl name="SpkrLeft COMP Switch" value="1" />
-        <ctl name="SpkrRight COMP Switch" value="1" />
-        <ctl name="SpkrLeft BOOST Switch" value="1" />
-        <ctl name="SpkrRight BOOST Switch" value="1" />
-        <ctl name="SpkrLeft VISENSE Switch" value="1" />
-        <ctl name="SpkrRight VISENSE Switch" value="1" />
-        <ctl name="SpkrLeft SWR DAC_Port Switch" value="1" />
-        <ctl name="SpkrRight SWR DAC_Port Switch" value="1" />
-        <!-- xuke @ 20150911 Add these widgets to use Lineout 4 as the source for speaker. Begin -->
-        <ctl name="RX INT6_2 MUX" value="RX0" />
-        <ctl name="COMP6 Switch" value="1" />
-        <!-- End -->
-    </path>
-    
     <!-- xuke @ 20150911 Add this path for normal external speaker PA. Begin -->
-    <path name="speaker">
+    <path name="wsa-speaker">
         <ctl name="SLIM RX0 MUX" value="AIF_MIX1_PB" />
         <ctl name="SLIM_0_RX Channels" value="One" />
         <!-- xuke @ 20150911 Add these widgets to use Lineout 4 as the source for speaker. Begin -->
@@ -1739,23 +1719,11 @@
     <!-- End -->
     
     <path name="wsa-speaker-mono">
-        <ctl name="SLIM RX0 MUX" value="AIF_MIX1_PB" />
-        <ctl name="SLIM_0_RX Channels" value="One" />
-        <ctl name="RX INT7_1 MIX1 INP0" value="RX0" />
-        <ctl name="SpkrLeft COMP Switch" value="1" />
-        <ctl name="SpkrLeft BOOST Switch" value="1" />
-        <ctl name="SpkrLeft VISENSE Switch" value="1" />
-        <ctl name="SpkrLeft SWR DAC_Port Switch" value="1" />
+        <path name="wsa-speaker" />
     </path>
 
     <path name="wsa-speaker-mono-2">
-        <ctl name="SLIM RX0 MUX" value="AIF_MIX1_PB" />
-        <ctl name="SLIM_0_RX Channels" value="One" />
-        <ctl name="RX INT8_1 MIX1 INP0" value="RX0" />
-        <ctl name="SpkrRight COMP Switch" value="1" />
-        <ctl name="SpkrRight BOOST Switch" value="1" />
-        <ctl name="SpkrRight VISENSE Switch" value="1" />
-        <ctl name="SpkrRight SWR DAC_Port Switch" value="1" />
+        <path name="wsa-speaker" />
     </path>
 
    <path name="vbat-speaker-mono">
@@ -1963,10 +1931,7 @@
     </path>
 
     <path name="voice-speaker">
-        <!-- xuke @ 20150911 Change wsa to normal.
         <path name="wsa-speaker-mono" />
-        -->
-        <path name="speaker" />
     </path>
 
     <path name="voice-speaker-2">
@@ -2013,18 +1978,12 @@
     </path>
 
     <path name="speaker-and-usb-headphones">
-        <!-- xuke @ 20150911 Change wsa to normal.
         <path name="wsa-speaker" />
-        -->
-        <path name="speaker" />
         <path name="usb-headphones" />
     </path>
 
     <path name="speaker-and-hdmi">
-        <!-- xuke @ 20150911 Change wsa to normal.
         <path name="wsa-speaker" />
-        -->
-        <path name="speaker" />
         <path name="hdmi" />
     </path>
 

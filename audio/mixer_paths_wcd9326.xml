@@ -1728,18 +1728,17 @@
 
    <path name="vbat-speaker-mono">
        <path name="wsa-speaker-mono" />
-       <ctl name="RX INT7 VBAT SPKRL VBAT Enable" value="1" />
+       <ctl name="RX INT6 VBAT LO4 VBAT Enable" value="1" />
    </path>
 
    <path name="vbat-speaker-mono-2">
        <path name="wsa-speaker-mono-2" />
-       <ctl name="RX INT8 VBAT SPKRR VBAT Enable" value="1" />
+       <ctl name="RX INT6 VBAT LO4 VBAT Enable" value="1" />
    </path>
 
    <path name="vbat-speaker">
        <path name="wsa-speaker" />
-       <ctl name="RX INT7 VBAT SPKRL VBAT Enable" value="1" />
-       <ctl name="RX INT8 VBAT SPKRR VBAT Enable" value="1" />
+       <ctl name="RX INT6 VBAT LO4 VBAT Enable" value="1" />
    </path>
 
    <path name="sidetone-iir">
@@ -1811,18 +1810,17 @@
 
     <path name="speaker-protected-vbat">
         <path name="speaker-protected" />
-        <ctl name="RX INT7 VBAT SPKRL VBAT Enable" value="1" />
-        <ctl name="RX INT8 VBAT SPKRR VBAT Enable" value="1" />
+        <ctl name="RX INT6 VBAT LO4 VBAT Enable" value="1" />
     </path>
 
     <path name="voice-speaker-protected-vbat">
         <path name="voice-speaker-protected" />
-        <ctl name="RX INT7 VBAT SPKRL VBAT Enable" value="1" />
+        <ctl name="RX INT6 VBAT LO4 VBAT Enable" value="1" />
     </path>
 
     <path name="voice-speaker-2-protected-vbat">
         <path name="voice-speaker-2-protected" />
-        <ctl name="RX INT8 VBAT SPKRR VBAT Enable" value="1" />
+        <ctl name="RX INT6 VBAT LO4 VBAT Enable" value="1" />
     </path>
 
     <path name="handset">

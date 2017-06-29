@@ -43,6 +43,9 @@ fi
 echo 95 > /proc/sys/kernel/sched_upmigrate
 echo 85 > /proc/sys/kernel/sched_downmigrate
 
+# android background processes are set to nice 10. Never schedule these on the a57s.
+echo 9 > /proc/sys/kernel/sched_upmigrate_min_nice
+
 echo 2 > /proc/sys/kernel/sched_window_stats_policy
 echo 5 > /proc/sys/kernel/sched_ravg_hist_size
 

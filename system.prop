@@ -101,9 +101,6 @@ ro.hwui.text_small_cache_height=1024
 ro.hwui.text_large_cache_width=4096
 ro.hwui.text_large_cache_height=1024
 
-#enable FIFO UI scheduling by default
-sys.use_fifo_ui=1
-
 # CABL
 ro.qualcomm.cabl=2
 

@@ -141,10 +141,6 @@ echo 20 > /sys/devices/system/cpu/cpu7/sched_mostly_idle_load
 
 echo 0 > /proc/sys/kernel/sched_boost
 
-# Enable input boost
-echo "0:1017600 1:1017600 2:1017600 3:1017600 4:0 5:0" > /sys/module/cpu_boost/parameters/input_boost_freq
-echo 1 > /sys/module/cpu_boost/parameters/input_boost_enabled
-
 # Bring up all cores online
 echo 1 > /sys/devices/system/cpu/cpu1/online
 echo 1 > /sys/devices/system/cpu/cpu2/online

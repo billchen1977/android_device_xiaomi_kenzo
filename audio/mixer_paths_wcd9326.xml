@@ -1775,12 +1775,10 @@
 
     <path name="speaker-protected">
         <ctl name="AIF4_VI Mixer SPKR_VI_1" value="1" />
-        <ctl name="AIF4_VI Mixer SPKR_VI_2" value="1" />
         <ctl name="SLIM_4_TX Format" value="PACKED_16B" />
         <path name="wsa-speaker" />
-        <ctl name="VI_FEED_TX Channels" value="Two" />
+        <ctl name="VI_FEED_TX Channels" value="One" />
         <ctl name="SLIM0_RX_VI_FB_LCH_MUX"  value="SLIM4_TX" />
-        <ctl name="SLIM0_RX_VI_FB_RCH_MUX"  value="SLIM4_TX" />
     </path>
 
     <path name="voice-speaker-protected">

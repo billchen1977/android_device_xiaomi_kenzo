@@ -62,6 +62,7 @@ for devfreq_gov in /sys/class/devfreq/qcom,mincpubw*/governor
 do
     echo "cpufreq" > $devfreq_gov
 done
+echo "cpufreq" > /sys/class/devfreq/mincpubw/governor
 
 for devfreq_gov in /sys/class/devfreq/qcom,cpubw*/governor
 do
@@ -75,11 +76,16 @@ do
         echo 30 > $cpu_guard_band
     done
 done
+echo "bw_hwmon" > /sys/class/devfreq/cpubw/governor
+echo 20 > /sys/class/devfreq/cpubw/bw_hwmon/io_percent
+echo 30 > /sys/class/devfreq/cpubw/bw_hwmon/guard_band_mbps
 
 for gpu_bimc_io_percent in /sys/class/devfreq/qcom,gpubw*/bw_hwmon/io_percent
 do
     echo 40 > $gpu_bimc_io_percent
 done
+echo 40 > /sys/class/devfreq/gpubw/bw_hwmon/io_percent
+
 # disable thermal & BCL core_control to update interactive gov settings
 echo 0 > /sys/module/msm_thermal/core_control/enabled
 for mode in /sys/devices/soc.0/qcom,bcl.*/mode

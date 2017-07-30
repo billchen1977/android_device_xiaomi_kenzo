@@ -187,7 +187,7 @@ audio.offload.pcm.16bit.enable=false
 audio.offload.pcm.24bit.enable=true
 
 #Enable audio track offload by default
-audio.offload.track.enable=false
+audio.offload.track.enable=true
 
 #Enable music through deep buffer
 audio.deep_buffer.media=true

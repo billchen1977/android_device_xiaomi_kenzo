@@ -81,6 +81,10 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml \
     frameworks/native/data/etc/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml
 
+# Vendor Interface Manifest
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/manifest.xml:system/vendor/manifest.xml
+
 # ANT+ stack
 PRODUCT_PACKAGES += \
     AntHalService \
@@ -114,6 +118,12 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/audio/acdbdata/MTP/msm8976-tasha-snd-card/MTP_WCD9335_Speaker_cal.acdb:system/etc/acdbdata/MTP/msm8976-tasha-snd-card/MTP_WCD9335_Speaker_cal.acdb
 
 PRODUCT_PACKAGES += \
+    android.hardware.audio@2.0-impl \
+    android.hardware.audio.effect@2.0-impl \
+    android.hardware.broadcastradio@1.0-impl \
+    android.hardware.soundtrigger@2.0-impl
+
+PRODUCT_PACKAGES += \
     audiod \
     audio.a2dp.default \
     audio.primary.msm8952 \
@@ -133,7 +143,22 @@ PRODUCT_PACKAGES += \
     libOmxEvrcEnc \
     libOmxAmrEnc
 
+# Bluetooth
+PRODUCT_PACKAGES += \
+    android.hardware.bluetooth@1.0-impl
+
+PRODUCT_PACKAGES += \
+    libbt-vendor
+
 # Display
+PRODUCT_PACKAGES += \
+    android.hardware.graphics.allocator@2.0-impl \
+    android.hardware.graphics.allocator@2.0-service \
+    android.hardware.graphics.composer@2.1-impl \
+    android.hardware.graphics.mapper@2.0-impl \
+    android.hardware.memtrack@1.0-impl \
+    android.hardware.renderscript@1.0-impl
+
 PRODUCT_PACKAGES += \
     copybit.msm8952 \
     gralloc.msm8952 \
@@ -148,13 +173,26 @@ PRODUCT_COPY_FILES += \
 
 # Light
 PRODUCT_PACKAGES += \
+    android.hardware.light@2.0-impl
+
+PRODUCT_PACKAGES += \
     lights.msm8952
 
 # Power
 PRODUCT_PACKAGES += \
+    android.hardware.power@1.0-impl
+
+PRODUCT_PACKAGES += \
     power.msm8952
 
+# Gatekeeper
+PRODUCT_PACKAGES += \
+    android.hardware.gatekeeper@1.0-impl
+
 # GPS
+PRODUCT_PACKAGES += \
+    android.hardware.gnss@1.0-impl
+
 PRODUCT_PACKAGES += \
     com.android.location.provider \
     gps.msm8952
@@ -172,6 +210,10 @@ PRODUCT_COPY_FILES += \
     device/xiaomi/kenzo/configs/msm_irqbalance.conf:system/vendor/etc/msm_irqbalance.conf \
     device/xiaomi/kenzo/configs/msm_irqbalance_little_big.conf:system/vendor/etc/msm_irqbalance_little_big.conf
 
+# Health
+PRODUCT_PACKAGES += \
+    android.hardware.health@1.0-impl
+
 # Input
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/idc/uinput-fpc.idc:system/usr/idc/uinput-fpc.idc \
@@ -185,6 +227,10 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/keylayout/msm8976-tashalite-snd-card_Button_Jack.kl:system/usr/keylayout/msm8976-tashalite-snd-card_Button_Jack.kl \
     $(LOCAL_PATH)/keylayout/uinput-fpc.kl:system/usr/keylayout/uinput-fpc.kl \
     $(LOCAL_PATH)/keylayout/gf318m.kl:system/usr/keylayout/gf318m.kl
+
+# Keymaster
+PRODUCT_PACKAGES += \
+    android.hardware.keymaster@3.0-impl
 
 # Media profile
 PRODUCT_COPY_FILES += \
@@ -211,15 +257,38 @@ PRODUCT_PACKAGES += \
     libOmxVenc \
     libstagefrighthw \
 
+PRODUCT_PACKAGES += \
+    android.hardware.drm@1.0-impl
+
 # Sensors
 PRODUCT_PACKAGES += \
-    sensors.kenzo
+    android.hardware.sensors@1.0-impl
+
+PRODUCT_PACKAGES += \
+     sensors.kenzo
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/sensor_def_qcomdev.conf:system/etc/sensors/sensor_def_qcomdev.conf \
     $(LOCAL_PATH)/configs/hals.conf:system/etc/sensors/hals.conf
 
-# wlan driver
+# TV
+PRODUCT_PACKAGES += \
+    android.hardware.tv.input@1.0-impl \
+    android.hardware.tv.input@1.0-service \
+    android.hardware.tv.cec@1.0-impl
+
+PRODUCT_PACKAGES += \
+    tv_input.default
+
+# USB
+PRODUCT_PACKAGES += \
+    android.hardware.usb@1.0-service
+
+# Vibrator
+PRODUCT_PACKAGES += \
+    android.hardware.vibrator@1.0-impl
+
+# Wifi
 PRODUCT_PACKAGES += \
     WCNSS_cfg.dat \
     WCNSS_qcom_wlan_nv.bin \
@@ -234,10 +303,16 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/wifi/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf
 
 PRODUCT_PACKAGES += \
+    android.hardware.wifi@1.0-service
+
+PRODUCT_PACKAGES += \
     libqsap_sdk \
     libQWiFiSoftApCfg \
     libwpa_client \
     hostapd \
+    wlutil \
+    wificond \
+    wifilogd \
     wpa_supplicant \
     wpa_supplicant.conf \
     hostapd_default.conf \
@@ -246,12 +321,19 @@ PRODUCT_PACKAGES += \
 
 # Camera
 PRODUCT_PACKAGES += \
+    camera.device@1.0-impl \
+    camera.device@3.2-impl \
+    android.hardware.camera.provider@2.4-impl
+
+PRODUCT_PACKAGES += \
     Snap \
     camera.msm8952
 
 # Fingerprint
 PRODUCT_PACKAGES += \
-    fingerprintd \
+    android.hardware.biometrics.fingerprint@2.1-service
+
+PRODUCT_PACKAGES += \
     fingerprint.kenzo
 
 # FM radio  
@@ -263,9 +345,15 @@ PRODUCT_PACKAGES += \
 
 # Consumerir
 PRODUCT_PACKAGES += \
+    android.hardware.ir@1.0-impl
+
+PRODUCT_PACKAGES += \
     consumerir.msm8952
 
 # RIL
+PRODUCT_PACKAGES += \
+    android.hardware.radio@1.0-impl
+
 PRODUCT_PACKAGES += \
     libril_proxy \
     librmnetctl \
@@ -291,6 +379,9 @@ PRODUCT_PACKAGES += \
     libipanat
 
 # Thermal
+PRODUCT_PACKAGES += \
+    android.hardware.thermal@1.0-impl
+
 PRODUCT_PACKAGES += \
     thermal.kenzo
 

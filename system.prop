@@ -151,6 +151,9 @@ vidc.enc.dcvs.extra-buff-count=2
 #enable narrow search range for video encoding
 vidc.enc.narrow.searchrange=1
 
+#Default OMX service to non-Treble
+persist.media.treble_omx=false
+
 # Audio
 af.fast_track_multiplier=1
 audio_hal.period_size=192

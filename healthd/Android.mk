@@ -3,5 +3,5 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := healthd_board_msm.cpp
 LOCAL_MODULE := libhealthd.$(TARGET_BOARD_PLATFORM)
 LOCAL_CFLAGS := -Werror
-LOCAL_C_INCLUDES := system/core/healthd/include/healthd/ bootable/recovery
+LOCAL_C_INCLUDES := system/core/healthd/include/healthd/ system/core/base/include
 include $(BUILD_STATIC_LIBRARY)

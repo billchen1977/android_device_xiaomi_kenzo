@@ -59,6 +59,9 @@ TARGET_KERNEL_APPEND_DTB := true
 KERNEL_DEFCONFIG := kenzo_defconfig
 #TARGET_COMPILE_WITH_MSM_KERNEL := true
 
+# Build Legacy Support Functions
+TARGET_USE_LEGACY_SUPPORT := true
+
 # Lights
 TARGET_PROVIDES_LIBLIGHT := true
 

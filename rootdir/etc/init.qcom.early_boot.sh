@@ -29,7 +29,6 @@
 export PATH=/system/bin
 
 setprop media.msm8956hw 1
-setprop media.settings.xml /etc/media_profiles_8956.xml
 if [ -f /sys/devices/soc0/platform_version ]; then
     hw_ver=`cat /sys/devices/soc.0/1d00000.qcom,vidc/version` 2> /dev/null
     if [ $hw_ver -eq 1 ]; then

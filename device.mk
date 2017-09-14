@@ -175,7 +175,7 @@ PRODUCT_PACKAGES += \
     liboverlay
 
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/display/calib.cfg:system/etc/calib.cfg \
+    $(LOCAL_PATH)/display/calib.cfg:$(TARGET_COPY_OUT_VENDOR)/etc/calib.cfg \
     $(LOCAL_PATH)/display/pp_calib_data_sharp_r63315_1080p_video_mode_dsi_panel.xml:system/etc/pp_calib_data_sharp_r63315_1080p_video_mode_dsi_panel.xml
 
 # Light

@@ -48,34 +48,6 @@ enum {
 };
 static int vendor_hack = HACK_NONE;
 
-static int load(const char *path,
-        const struct hw_module_t **pHmi)
-{
-    int status = 0;
-    void *handle = NULL;
-    struct hw_module_t *hmi = NULL;
-
-    handle = dlopen(path, RTLD_NOW);
-    if (handle == NULL) {
-        status = -EINVAL;
-        goto done;
-    }
-
-    hmi = (struct hw_module_t *)dlsym(handle,
-        HAL_MODULE_INFO_SYM_AS_STR);
-    if (hmi == NULL) {
-        status = -EINVAL;
-        goto done;
-    }
-
-    hmi->dso = handle;
-
-    done:
-    *pHmi = hmi;
-
-    return status;
-}
-
 static bool ensure_vendor_module_is_loaded(void)
 {
     android::Mutex::Autolock lock(vendor_mutex);
@@ -88,11 +60,11 @@ static bool ensure_vendor_module_is_loaded(void)
         if (!strcmp(vend, "fpc")) {
             vendor_hack |= HACK_CANCEL;
             property_set("persist.sys.fp.goodix", "0");
-            rv = load("/system/lib64/hw/fingerprint.msm8952.so", &vendor.hw_module);
+            rv = hw_get_module_by_class("fingerprint", "fpc", &vendor.hw_module);
         } else {
             vendor_hack |= HACK_SET_ACTIVE_GROUP;
             property_set("persist.sys.fp.goodix", "1");
-            rv = load("/system/lib64/hw/fingerprint.goodix.default.so", &vendor.hw_module);
+            rv = hw_get_module_by_class("fingerprint", "goodix", &vendor.hw_module);
         }
         if (rv) {
             ALOGE("failed to open vendor module, error %d", rv);

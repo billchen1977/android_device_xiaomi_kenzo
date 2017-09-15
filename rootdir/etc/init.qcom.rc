@@ -52,7 +52,7 @@ on early-boot
     write /sys/kernel/codec_type/boot ${persist.sys.external}
     write /sys/kernel/boot_adsp/boot 1
     chown root audio /sys/kernel/boot_adsp/boot
-    exec u:r:qti_init_shell:s0 -- /init.qcom.early_boot.sh
+    exec u:r:qti_init_shell:s0 -- /vendor/bin/init.qcom.early_boot.sh
 
 on boot
     chown bluetooth bluetooth /sys/module/bluetooth_power/parameters/power
@@ -368,7 +368,7 @@ on property:bluetooth.startbtsnoop=true
 on property:bluetooth.startbtsnoop=false
     stop btsnoop
 
-service qcom-c_main-sh /system/bin/sh /init.class_main.sh
+service qcom-c_main-sh /system/bin/sh /vendor/bin/init.class_main.sh
     class main
     user root
     oneshot
@@ -438,13 +438,13 @@ service hci_filter_root /vendor/bin/wcnss_filter
     group bluetooth system diag
     disabled
 
-service config_bluetooth /system/bin/sh /vendor/etc/init.qcom.bt.sh "onboot"
+service config_bluetooth /system/bin/sh /vendor/bin/init.qcom.bt.sh "onboot"
     class core
     user root
     oneshot
     seclabel u:r:qti_init_shell:s0
 
-service hciattach /system/bin/sh /vendor/etc/init.qcom.bt.sh
+service hciattach /system/bin/sh /vendor/bin/init.qcom.bt.sh
     class late_start
     user bluetooth
     group bluetooth net_bt_admin
@@ -577,7 +577,7 @@ service loc_launcher /vendor/bin/loc_launcher
     class late_start
     group gps inet net_raw diag net_admin wifi
 
-service fm_dl /system/bin/sh /vendor/etc/init.qcom.fm.sh
+service fm_dl /system/bin/sh /vendor/bin/init.qcom.fm.sh
     class late_start
     user system
     group system
@@ -585,20 +585,20 @@ service fm_dl /system/bin/sh /vendor/etc/init.qcom.fm.sh
     oneshot
     seclabel u:r:qti_init_shell:s0
 
-service qcom-sh /system/bin/sh /init.qcom.sh
+service qcom-sh /system/bin/sh /vendor/bin/init.qcom.sh
     class late_start
     user root
     oneshot
     seclabel u:r:qti_init_shell:s0
 
-service qcom-post-boot /system/bin/sh /vendor/etc/init.qcom.post_boot.sh
+service qcom-post-boot /system/bin/sh /vendor/bin/init.qcom.post_boot.sh
     class late_start
     user root
     disabled
     oneshot
     seclabel u:r:qti_init_shell:s0
 
-service config-zram /system/bin/sh /vendor/etc/init.qcom.zram.sh
+service config-zram /system/bin/sh /vendor/bin/init.qcom.zram.sh
     class late_start
     user root
     disabled
@@ -669,7 +669,7 @@ on property:sys.qbcharger.enable=false
     write /sys/power/wake_unlock QuickBoot
     stop qbcharger
 
-service bms-sh /system/bin/sh /init.qcom.bms.sh
+service bms-sh /system/bin/sh /vendor/bin/init.qcom.bms.sh
     class main
     user root
     oneshot
@@ -688,7 +688,7 @@ service msm_irqbal_lb /vendor/bin/msm_irqbalance -f /vendor/etc/msm_irqbalance_l
     disabled
 
 # Coresight early boot service
-service cs-early-boot /system/bin/sh /persist/coresight/qdss.agent.sh early-boot /vendor/etc/init.qcom.debug.sh
+service cs-early-boot /system/bin/sh /persist/coresight/qdss.agent.sh early-boot /vendor/bin/init.qcom.debug.sh
     class core
     user root
     oneshot

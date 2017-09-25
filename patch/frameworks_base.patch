@@ -1,49 +1,26 @@
-diff --git a/libs/hwui/font/CacheTexture.cpp b/libs/hwui/font/CacheTexture.cpp
-index 4b13814..49e9f65 100644
---- a/libs/hwui/font/CacheTexture.cpp
-+++ b/libs/hwui/font/CacheTexture.cpp
-@@ -188,15 +188,21 @@ void CacheTexture::allocatePixelBuffer() {
- bool CacheTexture::upload() {
-     const Rect& dirtyRect = mDirtyRect;
- 
--    uint32_t x = mHasUnpackRowLength ? dirtyRect.left : 0;
--    uint32_t y = dirtyRect.top;
--    uint32_t width = mHasUnpackRowLength ? dirtyRect.getWidth() : getWidth();
--    uint32_t height = dirtyRect.getHeight();
-+    // align the x direction to 32 and y direction to 4 for better performance
-+    uint32_t x = (((uint32_t)dirtyRect.left) & (~0x1F));
-+    uint32_t y = (((uint32_t)dirtyRect.top) & (~0x3));
-+    uint32_t r = ((((uint32_t)dirtyRect.right) + 0x1F) & (~0x1F)) - x;
-+    uint32_t b = ((((uint32_t)dirtyRect.bottom) + 0x3) & (~0x3)) - y;
-+    uint32_t width = (r > getWidth() ? getWidth() : r);
-+    uint32_t height = (b > getHeight() ? getHeight() : b);
- 
-     // The unpack row length only needs to be specified when a new
-     // texture is bound
-     if (mHasUnpackRowLength) {
-         glPixelStorei(GL_UNPACK_ROW_LENGTH, getWidth());
-+    } else {
-+        x = 0;
-+        width = getWidth();
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/phone/StatusBar.java b/packages/SystemUI/src/com/android/systemui/statusbar/phone/StatusBar.java
+index f58fe82..a7ebc94 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/phone/StatusBar.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/phone/StatusBar.java
+@@ -3842,7 +3842,7 @@ public class StatusBar extends SystemUI implements DemoMode,
      }
  
-     mPixelBuffer->upload(x, y, width, height);
-diff --git a/packages/SystemUI/src/com/android/systemui/assist/AssistManager.java b/packages/SystemUI/src/com/android/systemui/assist/AssistManager.java
-index c965067..f96a8c4 100644
---- a/packages/SystemUI/src/com/android/systemui/assist/AssistManager.java
-+++ b/packages/SystemUI/src/com/android/systemui/assist/AssistManager.java
-@@ -246,6 +246,9 @@ public class AssistManager {
+     public void onKeyguardOccludedChanged(boolean keyguardOccluded) {
+-        mNavigationBar.onKeyguardOccludedChanged(keyguardOccluded);
++        if (mNavigationBar != null) mNavigationBar.onKeyguardOccludedChanged(keyguardOccluded);
      }
  
-     private void maybeSwapSearchIcon(@NonNull ComponentName assistComponent, boolean isService) {
-+        if(mView == null) {
-+            onConfigurationChanged();
-+        }
-         replaceDrawable(mView.getOrb().getLogo(), assistComponent, ASSIST_ICON_METADATA_NAME,
-                 isService);
+     // State logging
+@@ -4633,6 +4633,7 @@ public class StatusBar extends SystemUI implements DemoMode,
+ 
+     // TODO: Figure out way to remove this.
+     public NavigationBarView getNavigationBarView() {
++        if (mNavigationBar == null) return null;
+         return (NavigationBarView) mNavigationBar.getView();
      }
+ 
 diff --git a/services/core/java/com/android/server/display/DisplayPowerController.java b/services/core/java/com/android/server/display/DisplayPowerController.java
-index f6240a7..94326b7 100644
+index e82724d..820b933 100644
 --- a/services/core/java/com/android/server/display/DisplayPowerController.java
 +++ b/services/core/java/com/android/server/display/DisplayPowerController.java
 @@ -19,6 +19,7 @@ package com.android.server.display;
@@ -54,7 +31,7 @@ index f6240a7..94326b7 100644
  
  import android.animation.Animator;
  import android.animation.ObjectAnimator;
-@@ -120,6 +121,9 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
+@@ -128,6 +129,9 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
      // Battery stats.
      private final IBatteryStats mBatteryStats;
  
@@ -64,7 +41,7 @@ index f6240a7..94326b7 100644
      // The sensor manager.
      private final SensorManager mSensorManager;
  
-@@ -265,6 +269,7 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
+@@ -284,6 +288,7 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
          mCallbacks = callbacks;
  
          mBatteryStats = BatteryStatsService.getService();
@@ -72,7 +49,7 @@ index f6240a7..94326b7 100644
          mSensorManager = sensorManager;
          mWindowManagerPolicy = LocalServices.getService(WindowManagerPolicy.class);
          mBlanker = blanker;
-@@ -839,6 +844,10 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
+@@ -903,6 +908,10 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
              } catch (RemoteException ex) {
                  // same process
              }
@@ -84,18 +61,10 @@ index f6240a7..94326b7 100644
  
          // Tell the window manager policy when the screen is turned off or on unless it's due
 diff --git a/services/core/java/com/android/server/policy/PhoneWindowManager.java b/services/core/java/com/android/server/policy/PhoneWindowManager.java
-index 889c52a..5680e33 100644
+index 4477e5a..506f5e0 100644
 --- a/services/core/java/com/android/server/policy/PhoneWindowManager.java
 +++ b/services/core/java/com/android/server/policy/PhoneWindowManager.java
-@@ -72,6 +72,7 @@ import android.hardware.hdmi.HdmiControlManager;
- import android.hardware.hdmi.HdmiPlaybackClient;
- import android.hardware.hdmi.HdmiPlaybackClient.OneTouchPlayCallback;
- import android.hardware.input.InputManagerInternal;
-+import android.hardware.input.InputManager;
- import android.media.AudioAttributes;
- import android.media.AudioManager;
- import android.media.AudioSystem;
-@@ -639,6 +640,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+@@ -707,6 +707,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
      boolean mSearchKeyShortcutPending;
      boolean mConsumeSearchKeyUp;
      boolean mAssistKeyLongPressed;
@@ -103,7 +72,7 @@ index 889c52a..5680e33 100644
      boolean mPendingMetaAction;
      boolean mPendingCapsLockToggle;
      int mMetaState;
-@@ -3293,10 +3295,29 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+@@ -3482,10 +3483,29 @@ public class PhoneWindowManager implements WindowManagerPolicy {
              return 0;
          } else if (keyCode == KeyEvent.KEYCODE_APP_SWITCH) {
              if (!keyguardOn) {
@@ -138,28 +107,28 @@ index 889c52a..5680e33 100644
              }
              return -1;
 diff --git a/services/core/java/com/android/server/power/PowerManagerService.java b/services/core/java/com/android/server/power/PowerManagerService.java
-index b33f3cf..417cccc 100644
+index 3b5db29..b23453d 100644
 --- a/services/core/java/com/android/server/power/PowerManagerService.java
 +++ b/services/core/java/com/android/server/power/PowerManagerService.java
-@@ -183,6 +183,8 @@ public final class PowerManagerService extends SystemService
-     private static final int HALT_MODE_REBOOT = 1;
-     private static final int HALT_MODE_REBOOT_SAFE_MODE = 2;
+@@ -219,6 +219,8 @@ public final class PowerManagerService extends SystemService
+     // File location for last reboot reason
+     private static final String LAST_REBOOT_LOCATION = "/data/misc/reboot/last_reboot_reason";
  
 +    private static final int BUTTONLIGHT_ON_DURATION = 5 * 1000;
 +
      private final Context mContext;
      private final ServiceThread mHandlerThread;
      private final PowerManagerHandler mHandler;
-@@ -198,6 +200,8 @@ public final class PowerManagerService extends SystemService
+@@ -236,6 +238,8 @@ public final class PowerManagerService extends SystemService
      private SettingsObserver mSettingsObserver;
      private DreamManagerInternal mDreamManager;
      private Light mAttentionLight;
 +    private Light mButtonsLight;
 +    private int mButtonsLightBrightness;
  
-     private final Object mLock = new Object();
+     private final Object mLock = LockGuard.installNewLock(LockGuard.INDEX_POWER);
  
-@@ -606,6 +610,10 @@ public final class PowerManagerService extends SystemService
+@@ -743,6 +747,10 @@ public final class PowerManagerService extends SystemService
  
              mLightsManager = getLocalService(LightsManager.class);
              mAttentionLight = mLightsManager.getLight(LightsManager.LIGHT_ID_ATTENTION);
@@ -170,7 +139,7 @@ index b33f3cf..417cccc 100644
  
              // Initialize display power management.
              mDisplayManagerInternal.initPowerManagement(
-@@ -1732,6 +1740,18 @@ public final class PowerManagerService extends SystemService
+@@ -1929,6 +1937,18 @@ public final class PowerManagerService extends SystemService
                      nextTimeout = mLastUserActivityTime
                              + screenOffTimeout - screenDimDuration;
                      if (now < nextTimeout) {

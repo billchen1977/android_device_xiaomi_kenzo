@@ -1,8 +1,8 @@
 diff --git a/media/libstagefright/CameraSource.cpp b/media/libstagefright/CameraSource.cpp
-index 893da89..29a8f7b 100644
+index 1cd7693..b831791 100644
 --- a/media/libstagefright/CameraSource.cpp
 +++ b/media/libstagefright/CameraSource.cpp
-@@ -313,6 +313,12 @@ status_t CameraSource::isCameraColorFormatSupported(
+@@ -336,6 +336,12 @@ status_t CameraSource::isCameraColorFormatSupported(
      return OK;
  }
  
@@ -15,7 +15,7 @@ index 893da89..29a8f7b 100644
  /*
   * Configure the camera to use the requested video size
   * (width and height) and/or frame rate. If both width and
-@@ -365,6 +371,10 @@ status_t CameraSource::configureCamera(
+@@ -388,6 +394,10 @@ status_t CameraSource::configureCamera(
                  params->get(CameraParameters::KEY_SUPPORTED_PREVIEW_FRAME_RATES);
          CHECK(supportedFrameRates != NULL);
          ALOGV("Supported frame rates: %s", supportedFrameRates);
@@ -26,17 +26,18 @@ index 893da89..29a8f7b 100644
          char buf[4];
          snprintf(buf, 4, "%d", frameRate);
          if (strstr(supportedFrameRates, buf) == NULL) {
-@@ -466,6 +476,8 @@ status_t CameraSource::checkFrameRate(
-         ALOGE("Failed to retrieve preview frame rate (%d)", frameRateActual);
+@@ -497,6 +507,9 @@ status_t CameraSource::checkFrameRate(
+                 "frame rate is %d", frameRate, frameRateActual);
          return UNKNOWN_ERROR;
      }
 +    int32_t highSpeedRate = getHighSpeedFrameRate(params);
-+    frameRateActual = highSpeedRate ? highSpeedRate : frameRateActual;
++    if (highSpeedRate)
++        frameRateActual = highSpeedRate;
  
-     // Check the actual video frame rate against the target/requested
-     // video frame rate.
+     // Good now.
+     mVideoFrameRate = frameRateActual;
 diff --git a/media/libstagefright/CameraSourceTimeLapse.cpp b/media/libstagefright/CameraSourceTimeLapse.cpp
-index 390c556..3780d92 100644
+index 970526a..492ecfe 100644
 --- a/media/libstagefright/CameraSourceTimeLapse.cpp
 +++ b/media/libstagefright/CameraSourceTimeLapse.cpp
 @@ -281,7 +281,8 @@ bool CameraSourceTimeLapse::skipFrameAndModifyTimeStamp(int64_t *timestampUs) {
@@ -63,10 +64,10 @@ index 390c556..3780d92 100644
      }
      return false;
 diff --git a/media/libstagefright/SurfaceMediaSource.cpp b/media/libstagefright/SurfaceMediaSource.cpp
-index 15ff569..0e33a85 100644
+index d0d82b3..057e3b6 100644
 --- a/media/libstagefright/SurfaceMediaSource.cpp
 +++ b/media/libstagefright/SurfaceMediaSource.cpp
-@@ -390,7 +390,7 @@ void SurfaceMediaSource::signalBufferReturned(MediaBuffer *buffer) {
+@@ -389,7 +389,7 @@ void SurfaceMediaSource::signalBufferReturned(MediaBuffer *buffer) {
      buffer_handle_t bufferHandle = getMediaBufferHandle(buffer);
  
      for (size_t i = 0; i < mCurrentBuffers.size(); i++) {
@@ -75,7 +76,7 @@ index 15ff569..0e33a85 100644
              mCurrentBuffers.removeAt(i);
              foundBuffer = true;
              break;
-@@ -406,7 +406,7 @@ void SurfaceMediaSource::signalBufferReturned(MediaBuffer *buffer) {
+@@ -405,7 +405,7 @@ void SurfaceMediaSource::signalBufferReturned(MediaBuffer *buffer) {
              continue;
          }
  
@@ -85,10 +86,10 @@ index 15ff569..0e33a85 100644
                      mSlots[id].mGraphicBuffer->handle);
  
 diff --git a/services/audioflinger/AudioFlinger.cpp b/services/audioflinger/AudioFlinger.cpp
-index fec3a57..ac047ab 100644
+index 9f19dfd..b9d32ff 100644
 --- a/services/audioflinger/AudioFlinger.cpp
 +++ b/services/audioflinger/AudioFlinger.cpp
-@@ -1509,7 +1509,7 @@ sp<IAudioRecord> AudioFlinger::openRecord(
+@@ -1620,7 +1620,7 @@ sp<IAudioRecord> AudioFlinger::openRecord(
      }
  
      // check calling permissions
@@ -98,10 +99,10 @@ index fec3a57..ac047ab 100644
          lStatus = PERMISSION_DENIED;
          goto Exit;
 diff --git a/services/audiopolicy/service/AudioPolicyInterfaceImpl.cpp b/services/audiopolicy/service/AudioPolicyInterfaceImpl.cpp
-index a75e3dd..67bacd1 100644
+index 1e63a05..7fe2030 100644
 --- a/services/audiopolicy/service/AudioPolicyInterfaceImpl.cpp
 +++ b/services/audiopolicy/service/AudioPolicyInterfaceImpl.cpp
-@@ -318,7 +318,7 @@ status_t AudioPolicyService::getInputForAttr(const audio_attributes_t *attr,
+@@ -330,7 +330,7 @@ status_t AudioPolicyService::getInputForAttr(const audio_attributes_t *attr,
              case AudioPolicyInterface::API_INPUT_TELEPHONY_RX:
                  // FIXME: use the same permission as for remote submix for now.
              case AudioPolicyInterface::API_INPUT_MIX_CAPTURE:
@@ -111,10 +112,10 @@ index a75e3dd..67bacd1 100644
                      status = PERMISSION_DENIED;
                  }
 diff --git a/services/camera/libcameraservice/api1/CameraClient.cpp b/services/camera/libcameraservice/api1/CameraClient.cpp
-index 266fb03..0172422 100644
+index 075c2e3..36067fd 100644
 --- a/services/camera/libcameraservice/api1/CameraClient.cpp
 +++ b/services/camera/libcameraservice/api1/CameraClient.cpp
-@@ -57,6 +57,7 @@ CameraClient::CameraClient(const sp<CameraService>& cameraService,
+@@ -59,6 +59,7 @@ CameraClient::CameraClient(const sp<CameraService>& cameraService,
      mOrientation = getOrientation(0, mCameraFacing == CAMERA_FACING_FRONT);
      mLegacyMode = legacyMode;
      mPlayShutterSound = true;
@@ -122,7 +123,7 @@ index 266fb03..0172422 100644
      LOG1("CameraClient::CameraClient X (pid %d, id %d)", callingPid, cameraId);
  }
  
-@@ -604,6 +605,11 @@ status_t CameraClient::takePicture(int msgType) {
+@@ -660,6 +661,11 @@ status_t CameraClient::takePicture(int msgType) {
  
      enableMsgType(picMsgType);
  
@@ -134,7 +135,7 @@ index 266fb03..0172422 100644
      return mHardware->takePicture();
  }
  
-@@ -931,7 +937,10 @@ void CameraClient::handleRawPicture(const sp<IMemory>& mem) {
+@@ -1040,7 +1046,10 @@ void CameraClient::handleRawPicture(const sp<IMemory>& mem) {
  
  // picture callback - compressed picture ready
  void CameraClient::handleCompressedPicture(const sp<IMemory>& mem) {
@@ -147,10 +148,10 @@ index 266fb03..0172422 100644
      sp<hardware::ICameraClient> c = mRemoteCallback;
      mLock.unlock();
 diff --git a/services/camera/libcameraservice/api1/CameraClient.h b/services/camera/libcameraservice/api1/CameraClient.h
-index 4f46fc4..7795853 100644
+index 7f93fef..849fbfa 100644
 --- a/services/camera/libcameraservice/api1/CameraClient.h
 +++ b/services/camera/libcameraservice/api1/CameraClient.h
-@@ -172,6 +172,8 @@ private:
+@@ -178,6 +178,8 @@ private:
      // This function keeps trying to grab mLock, or give up if the message
      // is found to be disabled. It returns true if mLock is grabbed.
      bool                    lockIfMessageWanted(int32_t msgType);

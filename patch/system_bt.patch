@@ -1,0 +1,50 @@
+diff --git a/device/src/controller.cc b/device/src/controller.cc
+index 1076bbf..7b519ec 100644
+--- a/device/src/controller.cc
++++ b/device/src/controller.cc
+@@ -22,6 +22,7 @@
+ 
+ #include <base/logging.h>
+ 
++#include "bt_target.h"
+ #include "bt_types.h"
+ #include "btcore/include/event_mask.h"
+ #include "btcore/include/module.h"
+@@ -359,12 +360,20 @@ static bool supports_master_slave_role_switch(void) {
+ 
+ static bool supports_enhanced_setup_synchronous_connection(void) {
+   assert(readable);
++#if (BTM_SCO_ENHANCED_SYNC_DISABLED == TRUE)
++  return false;
++#else
+   return HCI_ENH_SETUP_SYNCH_CONN_SUPPORTED(supported_commands);
++#endif
+ }
+ 
+ static bool supports_enhanced_accept_synchronous_connection(void) {
+   assert(readable);
++#if (BTM_SCO_ENHANCED_SYNC_DISABLED == TRUE)
++  return false;
++#else
+   return HCI_ENH_ACCEPT_SYNCH_CONN_SUPPORTED(supported_commands);
++#endif
+ }
+ 
+ static bool supports_ble(void) {
+diff --git a/include/bt_target.h b/include/bt_target.h
+index 05b5ff1..4bd5214 100644
+--- a/include/bt_target.h
++++ b/include/bt_target.h
+@@ -308,6 +308,12 @@
+ #define BTM_DISC_DURING_RS TRUE
+ #endif
+ 
++/*  This is used to work around a controller bug that report supporting
++ *  enhanced synchronous commands */
++#ifndef BTM_SCO_ENHANCED_SYNC_DISABLED
++#define BTM_SCO_ENHANCED_SYNC_DISABLED FALSE
++#endif
++
+ /**************************
+  * Initial SCO TX credit
+  ************************/
